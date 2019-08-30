@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/Foxcapades/eupath-svn2git/lib/color"
 	"github.com/Foxcapades/eupath-svn2git/lib/git"
 	"github.com/Foxcapades/eupath-svn2git/lib/log"
 	"github.com/Foxcapades/eupath-svn2git/lib/oss"
+	"github.com/Foxcapades/lib-go-ansi-esc/color"
 	"github.com/Foxcapades/lib-go-xos"
 	"path"
 )
@@ -16,49 +16,49 @@ func main() {
 	var proc git.Processor
 
 	for _, dir := range oss.Dirs() {
-		log.WriteLn("Entering path", color.Cyan(dir))
+		log.WriteLn("Entering path", color.FgLightCyanText(dir))
 		xos.Chdir(dir)
 
-		log.WriteLn(color.Gray("  Fetching changes from SVN"))
+		log.WriteLn(color.FgDarkGrayText("  Fetching changes from SVN"))
 		branches := proc.Fetch(dir)
 
 		if len(branches) == 0 {
-			log.WriteLn(color.Gray("  No new changes"))
+			log.WriteLn(color.FgDarkGrayText("  No new changes"))
 			xos.Chdir("..")
 			continue
 		}
 
-		log.WriteLn("  Processing branches:")
+		log.WriteLn(color.FgDarkGrayText("  Processing branches:"))
 
 		for _, branch := range branches {
 
 			local := toLocalBranchName(branch)
 
-			log.WriteLn("    " + local)
+			log.WriteLn(color.FgDarkGreenText("    " + local))
 
 			if !xos.FileExists(path.Join(GIT_HEAD_PATH, local)) {
-				log.WriteLn(color.Blue("      Creating"))
+				log.WriteLn(color.FgLightYellowText("      Creating"))
 				if !proc.CreateBranch(dir, local, branch) {
-					log.WriteLn(color.Red("      FAILED TO CREATE BRANCH"))
+					log.WriteLn(color.FgDarkRedText("      FAILED TO CREATE BRANCH"))
 					continue
 				}
 			}
 
-			log.WriteLn("      Checking out")
+			log.WriteLn(color.FgDarkGrayText("      Checking out"))
 			if !proc.Checkout(dir, local) {
-				log.WriteLn(color.Red("      FAILED TO CHECKOUT BRANCH"))
+				log.WriteLn(color.FgDarkRedText("      FAILED TO CHECKOUT BRANCH"))
 				continue
 			}
 
-			log.WriteLn("      Rebasing onto SVN remote")
+			log.WriteLn(color.FgDarkGrayText("      Rebasing onto SVN remote"))
 			if !proc.Rebase(dir, branch) {
-				log.WriteLn(color.Red("      Rebasing Failed!"))
+				log.WriteLn(color.FgDarkRedText("      Rebasing Failed!"))
 				continue
 			}
 
-			log.WriteLn("      Pushing up new changes")
+			log.WriteLn(color.FgDarkGrayText("      Pushing up new changes"))
 			if !proc.Push(dir, branch) {
-				log.WriteLn(color.Red("      Push failed!"))
+				log.WriteLn(color.FgDarkRedText("      Push failed!"))
 			}
 		}
 
