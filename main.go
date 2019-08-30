@@ -1,10 +1,11 @@
 package main
 
 import (
-	"gsman/lib/color"
-	"gsman/lib/git"
-	"gsman/lib/log"
-	"gsman/lib/oss"
+	"github.com/Foxcapades/eupath-svn2git/lib/color"
+	"github.com/Foxcapades/eupath-svn2git/lib/git"
+	"github.com/Foxcapades/eupath-svn2git/lib/log"
+	"github.com/Foxcapades/eupath-svn2git/lib/oss"
+	"github.com/Foxcapades/lib-go-xos"
 	"path"
 )
 
@@ -16,14 +17,14 @@ func main() {
 
 	for _, dir := range oss.Dirs() {
 		log.WriteLn("Entering path", color.Cyan(dir))
-		oss.Cd(dir)
+		xos.Chdir(dir)
 
 		log.WriteLn(color.Gray("  Fetching changes from SVN"))
 		branches := proc.Fetch(dir)
 
 		if len(branches) == 0 {
 			log.WriteLn(color.Gray("  No new changes"))
-			oss.Cd("..")
+			xos.Chdir("..")
 			continue
 		}
 
@@ -35,7 +36,7 @@ func main() {
 
 			log.WriteLn("    " + local)
 
-			if !oss.FileExists(path.Join(GIT_HEAD_PATH, local)) {
+			if !xos.FileExists(path.Join(GIT_HEAD_PATH, local)) {
 				log.WriteLn(color.Blue("      Creating"))
 				if !proc.CreateBranch(dir, local, branch) {
 					log.WriteLn(color.Red("      FAILED TO CREATE BRANCH"))
@@ -61,7 +62,7 @@ func main() {
 			}
 		}
 
-		oss.Cd("..")
+		xos.Chdir("..")
 	}
 
 	proc.WriteErrors()

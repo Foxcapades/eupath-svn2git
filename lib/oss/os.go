@@ -16,39 +16,6 @@ func Cwd() (o string) {
 	return a
 }
 
-func DirExists(path string) (out bool) {
-	log.TraceStart(path)
-	defer func() {log.TraceEnd(out)}()
-	a, b := os.Stat(path)
-
-	if b != nil {
-		if os.IsNotExist(b) {
-			return false
-		}
-
-		panic(b)
-	}
-
-	return a.IsDir()
-}
-
-func FileExists(path string) (out bool) {
-	log.TraceStart(path)
-	defer func() {log.TraceEnd(out)}()
-
-	stat, err := os.Stat(path)
-
-	if err != nil {
-		if os.IsNotExist(err) {
-			return false
-		}
-
-		panic(err)
-	}
-
-	return !stat.IsDir()
-}
-
 func Dirs() (dirs []string) {
 	log.TraceStart()
 	defer func() {log.TraceEnd(dirs)}()
@@ -65,11 +32,3 @@ func Dirs() (dirs []string) {
 	return
 }
 
-func Cd(path string) {
-	log.TraceStart()
-	err := os.Chdir(path)
-	if err != nil {
-		panic(err)
-	}
-	log.TraceEnd()
-}
