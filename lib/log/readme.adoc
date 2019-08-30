@@ -1,0 +1,42 @@
+= EuPathDB SVN to Git Sync Script
+
+Simple script to sync changes from the EuPathDB Subversion servers to the new
+EuPathDB Github projects.   This script uses push force and will cause problems
+for users attempting to commit changes to those git repositories.
+
+== Usage
+
+[source, console]
+----
+$ gsman
+Entering path ApiCommonData
+  Fetching changes from SVN
+  No new changes
+Entering path ApiCommonMetadataRepository
+  Fetching changes from SVN
+  No new changes
+Entering path ApiCommonModel
+  Fetching changes from SVN
+  Processing branches:
+    api-build-45
+      Checking out
+      Rebasing onto SVN remote branch
+      Pushing changes to github
+...
+<skip to end>
+...
+
+WARNING The following errors occurred during execution
+  SVN Fetch Errors:
+    Project: retired
+      Branch: N/A
+      Error: exit status 128
+      Stderr:
+fatal: not a git repository (or any parent up to mount point /)
+Stopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).
+Unable to find .git directory
+ at /usr/libexec/git-core/git-svn line 349.
+
+
+------------------------------------------------------------
+----
