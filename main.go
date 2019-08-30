@@ -7,62 +7,83 @@ import (
 	"github.com/Foxcapades/lib-go-ansi-esc/color"
 	"github.com/Foxcapades/lib-go-xos"
 	"path"
+	"strings"
 )
 
-const GIT_HEAD_PATH string = ".git/refs/heads"
+// User facing messages
+const (
+	msgFetch     = "Fetching changes from SVN"
+	msgNoChanges = "No new changes"
+	msgBranches  = "Processing branches:"
+	msgCreating  = "Creating"
+	msgCd        = "Entering path"
+	msgCo        = "Checking out"
+	msgRebase    = "Rebasing onto SVN remote branch"
+	msgPush      = "Pushing changes to github"
+
+	errBranch = "Failed to create branch"
+	errCo     = "Failed to checkout branch"
+	errRebase = "Failed to rebase branch"
+	errPush   = "Git push failed"
+)
+
+// Paths
+const (
+	dirUp   = ".."
+	refHead = ".git/refs/heads")
 
 func main() {
 
 	var proc git.Processor
 
 	for _, dir := range oss.Dirs() {
-		log.WriteLn("Entering path", color.FgLightCyanText(dir))
+		log.WriteLn(msgCd, color.FgLightCyanText(dir))
 		xos.Chdir(dir)
 
-		log.WriteLn(color.FgDarkGrayText("  Fetching changes from SVN"))
+		pInfo(indent(msgFetch, 1))
 		branches := proc.Fetch(dir)
 
 		if len(branches) == 0 {
-			log.WriteLn(color.FgDarkGrayText("  No new changes"))
-			xos.Chdir("..")
+			pInfo(indent(msgNoChanges, 1))
+			xos.Chdir(dirUp)
 			continue
 		}
 
-		log.WriteLn(color.FgDarkGrayText("  Processing branches:"))
+		pInfo(indent(msgBranches, 1))
 
 		for _, branch := range branches {
 
 			local := toLocalBranchName(branch)
 
-			log.WriteLn(color.FgDarkGreenText("    " + local))
+			log.WriteLn(color.FgDarkGreenText(indent(local, 2)))
 
-			if !xos.FileExists(path.Join(GIT_HEAD_PATH, local)) {
-				log.WriteLn(color.FgLightYellowText("      Creating"))
+			if !xos.FileExists(path.Join(refHead, local)) {
+				log.WriteLn(color.FgLightYellowText(indent(msgCreating, 2)))
 				if !proc.CreateBranch(dir, local, branch) {
-					log.WriteLn(color.FgDarkRedText("      FAILED TO CREATE BRANCH"))
+					pErr(indent(errBranch, 3))
 					continue
 				}
 			}
 
-			log.WriteLn(color.FgDarkGrayText("      Checking out"))
+			pInfo(indent(msgCo, 3))
 			if !proc.Checkout(dir, local) {
-				log.WriteLn(color.FgDarkRedText("      FAILED TO CHECKOUT BRANCH"))
+				pErr(indent(errCo, 3))
 				continue
 			}
 
-			log.WriteLn(color.FgDarkGrayText("      Rebasing onto SVN remote"))
+			pInfo(indent(msgRebase, 3))
 			if !proc.Rebase(dir, branch) {
-				log.WriteLn(color.FgDarkRedText("      Rebasing Failed!"))
+				pErr(indent(errRebase, 3))
 				continue
 			}
 
-			log.WriteLn(color.FgDarkGrayText("      Pushing up new changes"))
+			pInfo(indent(msgPush, 3))
 			if !proc.Push(dir, branch) {
-				log.WriteLn(color.FgDarkRedText("      Push failed!"))
+				pErr(indent(errPush, 3))
 			}
 		}
 
-		xos.Chdir("..")
+		xos.Chdir(dirUp)
 	}
 
 	proc.WriteErrors()
@@ -70,7 +91,18 @@ func main() {
 
 func toLocalBranchName(branch string) (o string) {
 	log.TraceStart(branch)
-	defer func() {log.TraceEnd(o)}()
+	defer func() { log.TraceEnd(o) }()
 	_, o = path.Split(branch)
 	return
+}
+
+func indent(txt string, n int) string {
+	return strings.Repeat("  ", n) + txt
+}
+
+func pErr(txt string) {
+	log.WriteLn(color.FgDarkRedText(txt))
+}
+func pInfo(txt string) {
+	log.WriteLn(color.FgDarkGrayText(txt))
 }

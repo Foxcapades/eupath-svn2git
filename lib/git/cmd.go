@@ -198,6 +198,8 @@ func (p Processor) WriteErrors() {
 func (p Processor) printHead() {
 	log.TraceStart()
 	defer log.TraceEnd()
+	fmt.Println()
+	fmt.Println()
 	fmt.Println(color.DarkRed("WARNING"), "The following errors occurred during execution")
 }
 
